@@ -1,0 +1,167 @@
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById("btn-sub-1").addEventListener("click", function() {
+      Counter('s1');
+    }, false);
+    document.getElementById("btn-add-1").addEventListener("click", function() {
+      Counter('a1');
+    }, false);
+    document.getElementById("btn-sub-2").addEventListener("click", function() {
+      Counter('s2');
+    }, false);
+    document.getElementById("btn-add-2").addEventListener("click", function() {
+      Counter('a2');
+    }, false);
+    document.getElementById("btn-submit").addEventListener("click",SubmitScore);  
+    document.getElementById("btn-reset").addEventListener("click",ResetScore); 
+    
+    document.getElementById("player-opt-1").addEventListener("change",EloUpdate);  
+    document.getElementById("player-opt-2").addEventListener("change",EloUpdate);  
+    document.getElementById("player-opt-3").addEventListener("change",EloUpdate);  
+    document.getElementById("player-opt-4").addEventListener("change",EloUpdate);  
+  });
+  /*
+  setInterval(function() {
+    console.log('getting score...');
+    google.script.run.withSuccessHandler(score_callback).getScore();
+    }, 1000);
+  */
+  //================================================================================================================================================
+  // If option is changed, run EloUpdate to update the ELO rating of the team.
+  function Counter(val) {
+    var score_1 = parseInt(document.getElementById("lbl-score-1").innerHTML);
+    var score_2 = parseInt(document.getElementById("lbl-score-2").innerHTML);
+    
+    
+    
+    if (val=='s1' && score_1>0) {
+      score_1--;
+      document.getElementById("lbl-score-1").innerHTML = score_1;
+    } else if (val=='a1') {
+      score_1++;
+      document.getElementById("lbl-score-1").innerHTML = score_1;
+    } else if (val=='s2' && score_2>0) {
+      score_2--;
+      document.getElementById("lbl-score-2").innerHTML = score_2;
+    } else if (val=='a2') {
+      score_2++;
+      document.getElementById("lbl-score-2").innerHTML = score_2;
+    }
+    var val_obj = {};
+    val_obj.s1 = score_1;
+    val_obj.s2 = score_2;
+    //google.script.run.withSuccessHandler().updateScore(val_obj);
+    
+
+  }
+  function ResetScore() {
+    document.getElementById("lbl-score-1").innerHTML = 0;
+    document.getElementById("lbl-score-2").innerHTML = 0;
+
+  }
+  function SubmitScore() {
+    
+    if(confirm('Do you want to submit?')) {
+      // Create an object for the value
+      var val_obj = {};
+      val_obj.game = '8 Ball';
+      val_obj.s1 = parseInt(document.getElementById("lbl-score-1").innerHTML);
+      val_obj.s2 = parseInt(document.getElementById("lbl-score-2").innerHTML);
+      
+      if (val_obj.s1>0 && val_obj.s1>0) {
+        val_obj.p1 = document.getElementById("player-opt-1").value;
+        val_obj.p2 = document.getElementById("player-opt-2").value;
+        
+        val_obj.elo_1 = document.getElementById("lbl-elo-val-1").innerHTML;
+        val_obj.win_1 = document.getElementById("lbl-win-val-1").innerHTML;
+        val_obj.elo_2 = document.getElementById("lbl-elo-val-2").innerHTML;
+        val_obj.win_2 = document.getElementById("lbl-win-val-2").innerHTML;
+
+        
+        if (document.getElementById("player-opt-3").value == "") {
+          val_obj.p3 = "-";
+        } else { 
+          val_obj.p3 = document.getElementById("player-opt-3").value;
+        }
+        if (document.getElementById("player-opt-4").value == "") {
+          val_obj.p4 = "-";
+        } else { 
+          val_obj.p4 = document.getElementById("player-opt-4").value;
+        }
+    
+        document.getElementById("lbl-elo-val-1").innerHTML = "-";
+        document.getElementById("lbl-win-val-1").innerHTML = "-%";
+        document.getElementById("lbl-elo-val-2").innerHTML = "-";
+        document.getElementById("lbl-win-val-2").innerHTML = "-%";
+        document.getElementById("lbl-score-1").innerHTML = "0";
+        document.getElementById("lbl-score-2").innerHTML = "0";
+        
+        document.getElementById("player-opt-1").selectedIndex = 0;
+        document.getElementById("player-opt-2").selectedIndex = 0;
+        document.getElementById("player-opt-3").selectedIndex = 0;
+        document.getElementById("player-opt-4").selectedIndex = 0;
+    
+        // Send to sheet and run the script to update values in app
+        google.script.run.withSuccessHandler().submit_game(val_obj);
+        
+        // Clear object
+        delete val_obj;
+      } else {
+        alert('Score cannot be submitted as 0-0')
+        // Clear object
+        delete val_obj;
+      }
+    }
+  }
+  //================================================================================================================================================
+  // If option is changed, run EloUpdate to update the ELO rating of the team.
+  function EloUpdate() {
+    // Create an object for the value
+    var val_obj = {}; 
+    
+    document.getElementById("lbl-elo-val-1").innerHTML = "-";
+    document.getElementById("lbl-win-val-1").innerHTML = "-%";
+    document.getElementById("lbl-elo-val-2").innerHTML = "-";
+    document.getElementById("lbl-win-val-2").innerHTML = "-%";
+  
+    if (document.getElementById("player-opt-1").value == "") {
+      val_obj.p1 = "-";
+    } else { 
+      val_obj.p1 = document.getElementById("player-opt-1").value;
+    }
+    if (document.getElementById("player-opt-2").value == "") {
+      val_obj.p2 = "-";
+    } else { 
+      val_obj.p2 = document.getElementById("player-opt-2").value;
+    }
+    if (document.getElementById("player-opt-3").value == "") {
+      val_obj.p3 = "-";
+    } else { 
+      val_obj.p3 = document.getElementById("player-opt-3").value;
+    }
+    if (document.getElementById("player-opt-4").value == "") {
+      val_obj.p4 = "-";
+    } else { 
+      val_obj.p4 = document.getElementById("player-opt-4").value;
+    }   
+    // Send to sheet and run the script to update values in app
+    google.script.run.withSuccessHandler(stat_callback).update_elo_8(val_obj);
+    
+    // Clear card value
+    delete val_obj;
+  }
+  //================================================================================================================================================
+  function stat_callback(val_obj){
+    document.getElementById("lbl-elo-val-1").innerHTML = String(val_obj.elo_1);
+    document.getElementById("lbl-win-val-1").innerHTML = String(val_obj.win_1) + "%";
+    document.getElementById("lbl-elo-val-2").innerHTML = String(val_obj.elo_2);
+    document.getElementById("lbl-win-val-2").innerHTML = String(val_obj.win_2) + "%";
+  }
+  function score_callback(score_obj){
+    document.getElementById("lbl-score-1").innerHTML = score_obj.s1;
+    document.getElementById("lbl-score-2").innerHTML = score_obj.s2;
+  }
+  
+</script>
+
+
